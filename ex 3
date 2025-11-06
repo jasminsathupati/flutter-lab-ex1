@@ -1,0 +1,191 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: "Periodic Table Explorer",
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: Colors.teal,
+        useMaterial3: true,
+      ),
+      home: const PeriodicTableExplorer(),
+    );
+  }
+}
+
+class ElementInfo {
+  final String name;
+  final String symbol;
+  final int atomicNumber;
+  final String category;
+  final Color color;
+
+  ElementInfo({
+    required this.name,
+    required this.symbol,
+    required this.atomicNumber,
+    required this.category,
+    required this.color,
+  });
+}
+
+class PeriodicTableExplorer extends StatefulWidget {
+  const PeriodicTableExplorer({super.key});
+
+  @override
+  State<PeriodicTableExplorer> createState() => _PeriodicTableExplorerState();
+}
+
+class _PeriodicTableExplorerState extends State<PeriodicTableExplorer> {
+  final List<ElementInfo> elements = [
+    ElementInfo(name: "Hydrogen", symbol: "H", atomicNumber: 1, category: "Non-metal", color: Colors.lightBlueAccent),
+    ElementInfo(name: "Helium", symbol: "He", atomicNumber: 2, category: "Noble Gas", color: Colors.pinkAccent),
+    ElementInfo(name: "Lithium", symbol: "Li", atomicNumber: 3, category: "Alkali Metal", color: Colors.redAccent),
+    ElementInfo(name: "Beryllium", symbol: "Be", atomicNumber: 4, category: "Alkaline Earth Metal", color: Colors.greenAccent),
+    ElementInfo(name: "Boron", symbol: "B", atomicNumber: 5, category: "Metalloid", color: Colors.purpleAccent),
+    ElementInfo(name: "Carbon", symbol: "C", atomicNumber: 6, category: "Non-metal", color: Colors.cyanAccent),
+    ElementInfo(name: "Nitrogen", symbol: "N", atomicNumber: 7, category: "Non-metal", color: Colors.indigoAccent),
+    ElementInfo(name: "Oxygen", symbol: "O", atomicNumber: 8, category: "Non-metal", color: Colors.red),
+    ElementInfo(name: "Fluorine", symbol: "F", atomicNumber: 9, category: "Halogen", color: Colors.orangeAccent),
+    ElementInfo(name: "Neon", symbol: "Ne", atomicNumber: 10, category: "Noble Gas", color: Colors.tealAccent),
+  ];
+
+  String query = "";
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = elements
+        .where((e) =>
+            e.name.toLowerCase().contains(query.toLowerCase()) ||
+            e.symbol.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Periodic Table Explorer"),
+        centerTitle: true,
+        backgroundColor: Colors.teal,
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE0F7FA), Color(0xFFFFFFFF)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Column(
+          children: [
+            // 🔍 Search bar
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: "Search element...",
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                onChanged: (value) => setState(() => query = value),
+              ),
+            ),
+
+            // 🧪 Dynamic ListView
+            Expanded(
+              child: ListView.builder(
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final element = filtered[index];
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: element.color.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 6,
+                        )
+                      ],
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(12),
+                      leading: CircleAvatar(
+                        radius: 28,
+                        backgroundColor: element.color,
+                        child: Text(
+                          element.symbol,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        element.name,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      subtitle: Text(
+                        "Atomic No: ${element.atomicNumber}\nCategory: ${element.category}",
+                        style: const TextStyle(fontSize: 14, color: Colors.black54),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.info_outline, color: Colors.teal),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              title: Text("${element.name} (${element.symbol})",
+                                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                              content: Text(
+                                  "Atomic Number: ${element.atomicNumber}\nCategory: ${element.category}\n\nThis element belongs to the ${element.category} group."),
+                              actions: [
+                                TextButton(
+                                  child: const Text("Close"),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: element.color,
+                            content: Text("${element.name} selected!",
+                                style: const TextStyle(color: Colors.white)),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
